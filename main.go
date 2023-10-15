@@ -20,7 +20,6 @@ type Champion struct {
 }
 
 func CreateURL(championName string) string {
-
 	url := url.URL{
 		Scheme: "https",
 		Host:   "u.gg",
@@ -30,7 +29,6 @@ func CreateURL(championName string) string {
 }
 
 func main() {
-
 	c := colly.NewCollector()
 
 	reader := bufio.NewReader(os.Stdin)
@@ -47,24 +45,7 @@ func main() {
 	c.OnResponse(func(r *colly.Response) {
 		fmt.Println("Page visited: ", r.Request.URL)
 	})
-	c.OnHTML(".best-win-rate", func(e *colly.HTMLElement) {
-		name := e.ChildText(".champion-name")
-		if len(name) > 15 {
-			return
-		}
-		winRate, err := strconv.ParseFloat(strings.Trim(e.ChildText(".win-rate"), "% WR"), 32)
-		if winRate < 50 {
-			return
-		}
-		if err != nil {
-			log.Panic("err when parsing win rate", err)
-		}
-		playRate := e.ChildText(".total-games")
-
-		newChamp := Champion{name, float32(winRate), playRate, make([]Champion, 0)}
-		mainChampion.Counters = append(mainChampion.Counters, newChamp)
-
-	})
+	c.OnHTML(".best-win-rate", getHTMLCallback(&mainChampion))
 	url := CreateURL(championName)
 	c.Visit(url)
 
@@ -90,11 +71,10 @@ func main() {
 	}
 
 	champToPlay := pickChampToPlay(mainChampion)
-	fmt.Println("Best champion to add is ", champToPlay)
+	fmt.Println("Best champion to add is", champToPlay)
 }
 
 func getHTMLCallback(c *Champion) colly.HTMLCallback {
-
 	return func(e *colly.HTMLElement) {
 		name := e.ChildText(".champion-name")
 		if len(name) > 15 {
@@ -120,7 +100,6 @@ func pickChampToPlay(mainChampion Champion) string {
 	maxim, result := 0, ""
 
 	for _, champ := range mainChampion.Counters {
-
 		for _, c := range champ.Counters {
 			v, ok := hashMap[c.Name]
 			if ok {
