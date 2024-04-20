@@ -20,23 +20,23 @@ jobs:
         run: | 
           docker build . --tag ${{ env.REGISTRY }}
           docker push  ${{ env.REGISTRY }}
-  
+
   deploy: 
-    needs: publish
-    name: deploy image
+    name: deploy-image 
+    needs: publish 
     runs-on: ubuntu-latest
 
     steps: 
-      - name: install ssh keys
-        run: | 
-          install -m 600 -D /dev/null ~/.ssh/id_rsa
-          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
-      - name: connect and pull 
-        run: | 
-          ssh root@${{ secrets.SSH_HOST }}
-          docker pull ${{ env.REGISTRY }}
-      - name: run the app
-        run: docker run -p 80:8080 ${{ env.REGISTRY }}
-      - name: cleanup 
-        run: rm -rf ~/.ssh
+     - name: install ssh key 
+       run: | 
+            install -m 600 -D /dev/null ~/.ssh/id_rsa
+            echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+            ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
+     - name: connect and pull
+       run: | 
+            ssh root@ ${{ secrets.SSH_HOST }} 
+            docker pull ${{ env.REGISTRY }}
+     - name: Run the application 
+       run: docker run  -p 80:8080 ${{ env.REGISTRY }} 
+     - name: cleanup
+       run: rm -rf ~/.ssh
