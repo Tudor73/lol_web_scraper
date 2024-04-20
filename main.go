@@ -16,5 +16,5 @@ func main() {
 }
 
 func handler(c echo.Context) error {
-	return c.String(http.StatusOK, "Server runnning!")
+	return c.String(http.StatusOK, "Server runnning test!")
 }
