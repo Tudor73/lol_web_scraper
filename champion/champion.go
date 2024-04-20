@@ -11,7 +11,7 @@ import (
 	"sync"
 
 	"github.com/gocolly/colly"
-	"github.com/gorilla/mux"
+	"github.com/labstack/echo/v4"
 )
 
 type Champion struct {
@@ -34,9 +34,8 @@ func CreateURL(championName string) string {
 	}
 	return url.String()
 }
-func ChampionHandler(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	championName := vars["championName"]
+func ChampionHandler(context echo.Context) error {
+	championName := context.Param("championName")
 
 	c := colly.NewCollector()
 	var wg sync.WaitGroup
@@ -44,7 +43,7 @@ func ChampionHandler(w http.ResponseWriter, r *http.Request) {
 	mainChampion := Champion{championName, 0, "main", make([]Champion, 0)}
 	c.OnError(func(_ *colly.Response, err error) {
 		fmt.Println("Something went wrong: ", err)
-		http.Error(w, err.Error(), 400)
+		return
 	})
 	c.OnResponse(func(r *colly.Response) {
 		fmt.Println("Page visited: ", r.Request.URL)
@@ -53,7 +52,7 @@ func ChampionHandler(w http.ResponseWriter, r *http.Request) {
 	url := CreateURL(mainChampion.Name)
 	err := c.Visit(url)
 	if err != nil {
-		http.Error(w, err.Error(), 400)
+		return err
 	}
 
 	for _, c := range mainChampion.Counters {
@@ -74,8 +73,8 @@ func ChampionHandler(w http.ResponseWriter, r *http.Request) {
 			})
 			c.OnError(func(r *colly.Response, err error) {
 				fmt.Println("error when scraping site", err)
-				http.Error(w, err.Error(), 500)
 				wg.Done()
+				return
 
 			})
 			c.Visit(url)
@@ -97,12 +96,9 @@ func ChampionHandler(w http.ResponseWriter, r *http.Request) {
 	result.Result = champToPlay
 	fmt.Println("Best champion to add is", champToPlay)
 
-	jsonStr, err := json.Marshal(result)
-
-	if err != nil {
-		http.Error(w, err.Error(), 500)
-	}
-	w.Write(jsonStr)
+	context.Response().Header().Set(echo.HeaderContentType, echo.MIMEApplicationJSONCharsetUTF8)
+	context.Response().WriteHeader(http.StatusOK)
+	return json.NewEncoder(context.Response()).Encode(result)
 }
 
 func getHTMLCallback(c *Champion) colly.HTMLCallback {
