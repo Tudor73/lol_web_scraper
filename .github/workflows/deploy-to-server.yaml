@@ -37,11 +37,11 @@ jobs:
      - name: connect and pull
        run: | 
             ssh root@${{ secrets.SSH_HOST }} 
-            docker stop ${{ env.REGISTRY }}
-            docker system prune -f
-            docker pull ${{ env.REGISTRY }}
      - name: Run the application 
        run: |
+        docker stop $(docker ps -a -q)
+        docker system prune -f
+        docker pull ${{ env.REGISTRY }}
         docker run  -p 80:8080 ${{ env.REGISTRY }} 
      - name: cleanup
        run: rm -rf ~/.ssh
