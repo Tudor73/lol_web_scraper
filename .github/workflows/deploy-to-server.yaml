@@ -36,7 +36,7 @@ jobs:
             ssh-keyscan -H ${{ secrets.SSH_HOST }} > ~/.ssh/known_hosts
      - name: connect and pull
        run: | 
-            ssh root@ ${{ secrets.SSH_HOST }} 
+            ssh root@${{ secrets.SSH_HOST }} 
             docker stop ${{ env.REGISTRY }}
             docker system prune -f
             docker pull ${{ env.REGISTRY }}
