@@ -39,6 +39,7 @@ jobs:
             ssh root@${{ secrets.SSH_HOST }} 
      - name: Run the application 
        run: |
+        echo ${{ secrets.DOCKER_TOKEN }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
         docker system prune -f
         docker pull ${{ env.REGISTRY }}
         docker run  -p 80:8080 ${{ env.REGISTRY }} 
